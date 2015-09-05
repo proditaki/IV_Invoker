@@ -125,6 +125,27 @@ unsigned int CreateHash(char* Native)
 
 void Hook_Get_Player_ID(struct NativeArg* a_pArgs)
 {	
+	if (*(unsigned int*)0x10020000 != 0)
+	{
+		struct NativeArg l_pArg;
+		l_pArg.p_uiArgValues = (unsigned int*)0x10020004;
+		l_pArg.p_uiReturnValues = (unsigned int*)0x10020004;
+
+		unsigned int l_uiNativeHash = *(unsigned int*)0x10020000;
+		unsigned int l_uiNativeAddress = GetNativeAddressFromHash(l_uiNativeHash);
+
+		if (l_uiNativeHash == CreateHash("GET_PLAYER_ID"))
+			Original_Get_Player_ID(&l_pArg);
+		else
+		{
+			if (l_uiNativeAddress)
+				((void(*)(struct NativeArg*))l_uiNativeAddress)(&l_pArg);
+
+			else
+				printf("Unknow Native 0x%08x\n", l_uiNativeHash);
+		}
+		*(unsigned int*)0x10020000 = 0;
+	}
 	Original_Get_Player_ID(a_pArgs);
 	//printf("Player_ID seems to be: %d\n", a_pArgs->p_uiReturnValues[0]);
 }
