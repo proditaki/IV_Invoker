@@ -12,6 +12,36 @@ sys_ppu_thread_t	g_MainThreadID;
 struct NativeArg g_NativeArg;
 unsigned int g_pArgs[16];
 
+void(*Original_Get_Player_ID)(struct NativeArg*);
+
+unsigned int HookNative(unsigned int a_iNativehash, unsigned a_uiNewFunction)
+{
+	unsigned int l_uiHashTablePointer = 0x17D1438;
+	unsigned int l_uiModulator = *(unsigned int*)0x17D143C;
+	unsigned int result;
+
+	int l_iIndexer = a_iNativehash % l_uiModulator;
+	unsigned int l_uiHashTableAddress = *(unsigned int *)l_uiHashTablePointer;
+	unsigned int l_uiNatveHash = a_iNativehash;
+
+	if (l_uiModulator == 0)
+		return 0;
+
+	for (unsigned int i = *(unsigned int *)(l_uiHashTableAddress + 8 * l_iIndexer); i > 1; i = *(unsigned int *)(l_uiHashTableAddress + 8 * l_iIndexer))
+	{
+		if (i == a_iNativehash)
+			break;
+		l_uiNatveHash = (l_uiNatveHash >> 1) + 1;
+		l_iIndexer = (l_uiNatveHash + l_iIndexer) % l_uiModulator;
+	}
+	if (*(unsigned int *)(l_uiHashTableAddress + 8 * l_iIndexer + 4) != 0)
+	{
+		*(unsigned int *)(l_uiHashTableAddress + 8 * l_iIndexer + 4) = a_uiNewFunction;
+		return 1;
+	}
+	return 0;
+}
+
 unsigned int GetNativeAddressFromHash(unsigned int a_iNativehash)
 {
 	unsigned int l_uiHashTablePointer = 0x17D1438;
@@ -21,6 +51,10 @@ unsigned int GetNativeAddressFromHash(unsigned int a_iNativehash)
 	int l_iIndexer = a_iNativehash % l_uiModulator;
 	unsigned int l_uiHashTableAddress = *(unsigned int *)l_uiHashTablePointer;
 	unsigned int l_uiNatveHash = a_iNativehash;
+	
+	if (l_uiModulator == 0)
+		return 0;
+	
 	for (unsigned int i = *(unsigned int *)(l_uiHashTableAddress + 8 * l_iIndexer); i > 1; i = *(unsigned int *)(l_uiHashTableAddress + 8 * l_iIndexer))
 	{
 		if (i == a_iNativehash)
@@ -28,30 +62,7 @@ unsigned int GetNativeAddressFromHash(unsigned int a_iNativehash)
 		l_uiNatveHash = (l_uiNatveHash >> 1) + 1;
 		l_iIndexer = (l_uiNatveHash + l_iIndexer) % l_uiModulator;
 	}
-	if (*(unsigned int *)(l_uiHashTableAddress + 8 * l_iIndexer) <= 1 || (result = *(unsigned int *)(l_uiHashTableAddress + 8 * l_iIndexer + 4)) == 0)
-	{
-		if (l_uiModulator)
-		{
-			unsigned int l_uiModulator2 = *(unsigned int *)(l_uiModulator + 4);
-			if (l_uiModulator2)
-			{
-				l_iIndexer = a_iNativehash % l_uiModulator2;
-				int l_iIndexer2 = *(unsigned int *)l_uiModulator;
-				l_uiNatveHash = a_iNativehash;
-				for (unsigned int j = *(unsigned int *)(*(unsigned int *)l_uiModulator + 8 * (a_iNativehash % l_uiModulator2)); j > 1; j = *(unsigned int *)(l_iIndexer2 + 8 * l_iIndexer))
-				{
-					if (j == a_iNativehash)
-						break;
-					l_uiNatveHash = (l_uiNatveHash >> 1) + 1;
-					l_iIndexer = (l_uiNatveHash + l_iIndexer) % l_uiModulator2;
-				}
-			}
-		}
-		//printf("Native function 0x%08x not found.", a_iNativehash);
-		result = 0;
-	}
-	//printf("hash: 0x%08x address: 0x%08x\n", a_iNativehash, result);
-	return result;
+	return *(unsigned int *)(l_uiHashTableAddress + 8 * l_iIndexer + 4);
 }
 
 unsigned int GetNativeAddresFromName(char* a_sNative)
@@ -112,6 +123,12 @@ unsigned int CreateHash(char* Native)
 	return ((unsigned int(*)(char* native))&joaat)(Native);
 }
 
+void Hook_Get_Player_ID(struct NativeArg* a_pArgs)
+{
+	printf("Drawing :P\n");
+	Original_Get_Player_ID(a_pArgs);
+}
+
 void MainThread(uint64_t)
 {
 	g_NativeArg.p_uiArgValues = g_pArgs;
@@ -119,6 +136,17 @@ void MainThread(uint64_t)
 	g_NativeArg.uiArgCount = 0;
 
 	int lastCounter = 0, lastvalue = 0;
+	
+	while (GetNativeAddresFromName("GET_PLAYER_ID") == 0) 
+		sys_timer_usleep(20000);
+
+	Original_Get_Player_ID = (void(*)(struct NativeArg*))GetNativeAddresFromName("DRAW_RECT");
+
+	if (HookNative(CreateHash("DRAW_RECT"), (unsigned int)Hook_Get_Player_ID))
+	{
+		printf("GET_PLAYER_ID Succesfull Hook\n");
+	}
+
 	sys_timer_sleep(140);
 	while(true)
 	{

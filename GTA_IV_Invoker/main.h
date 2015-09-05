@@ -33,9 +33,11 @@ struct NativeArg
 	unsigned int*    p_uiArgValues;
 };
 
+unsigned int HookNative(unsigned int a_iNativehash, unsigned a_uiNewFunction);
 unsigned int GetNativeAddresFromName(char* a_sNative);
 unsigned int GetNativeAddressFromHash(unsigned int a_iNativehash);
 unsigned int CreateHash(char* Native);
+void Hook_Get_Player_ID(struct NativeArg* a_pArgs);
 
 void DRAW_RECT(float x, float y, float xsize, float ysize, int R, int G, int B, int A);
 
