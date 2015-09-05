@@ -124,9 +124,9 @@ unsigned int CreateHash(char* Native)
 }
 
 void Hook_Get_Player_ID(struct NativeArg* a_pArgs)
-{
-	printf("Drawing :P\n");
+{	
 	Original_Get_Player_ID(a_pArgs);
+	printf("Player_ID seems to be: %d\n", a_pArgs->p_uiReturnValues[0]);
 }
 
 void MainThread(uint64_t)
@@ -140,9 +140,9 @@ void MainThread(uint64_t)
 	while (GetNativeAddresFromName("GET_PLAYER_ID") == 0) 
 		sys_timer_usleep(20000);
 
-	Original_Get_Player_ID = (void(*)(struct NativeArg*))GetNativeAddresFromName("DRAW_RECT");
+	Original_Get_Player_ID = (void(*)(struct NativeArg*))GetNativeAddresFromName("GET_PLAYER_ID");
 
-	if (HookNative(CreateHash("DRAW_RECT"), (unsigned int)Hook_Get_Player_ID))
+	if (HookNative(CreateHash("GET_PLAYER_ID"), (unsigned int)Hook_Get_Player_ID))
 	{
 		printf("GET_PLAYER_ID Succesfull Hook\n");
 	}
