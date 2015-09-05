@@ -126,7 +126,7 @@ unsigned int CreateHash(char* Native)
 void Hook_Get_Player_ID(struct NativeArg* a_pArgs)
 {	
 	Original_Get_Player_ID(a_pArgs);
-	printf("Player_ID seems to be: %d\n", a_pArgs->p_uiReturnValues[0]);
+	//printf("Player_ID seems to be: %d\n", a_pArgs->p_uiReturnValues[0]);
 }
 
 void MainThread(uint64_t)
@@ -150,22 +150,9 @@ void MainThread(uint64_t)
 	sys_timer_sleep(140);
 	while(true)
 	{
-		/*
-		if (lastCounter != *((int*)0x17D1444) || lastvalue != *((int*)0x17D143C))
-		{
-			lastCounter = *((int*)0x17D1444);
-			lastvalue = *((int*)0x17D143C);
-			printf("Hash Table: %d NativeCounter: %d 0x17D143C: %d\n", *((int*)0x17D1438), *((int*)0x17D1444), *((int*)0x17D143C));
-		}
-		else if (*(unsigned int*)0x10020000 != 0)
-		{
-			GetNativeAddressFromHash(*(unsigned int*)0x10020000);
-			*(unsigned int*)0x10020000 = 0;
-		}
-		*/
-		DRAW_RECT(0.5, 0.52, 0.5, 0.2, 255, 100, 50, 150);
+		//DRAW_RECT(0.5, 0.52, 0.5, 0.2, 255, 100, 50, 150);
 		//Invoke<int>("DRAW_RECT", 8, float_int(0.5), float_int(0.52), float_int(0.5), float_int(0.2), 255, 100, 50, 150);
-		//printf("player online: %d", Invoke<int>(0xF49F20, 0));
+
 		sys_timer_usleep(20000);
 	}
 }
